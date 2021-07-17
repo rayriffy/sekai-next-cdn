@@ -2,6 +2,7 @@ import axios from 'axios'
 import fs from 'fs-extra'
 import path from 'path'
 import { flattenDeep } from 'lodash'
+import { execSync } from 'child_process'
 
 import { TaskQueue } from 'cwait'
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
@@ -53,20 +54,18 @@ const fetchCache = async (remoteUrl: string, localPath: string, unit: string) =>
 }
 
 ;(async () => {
-  // if (!fs.existsSync(nextSekaiAssetsCachePath) && process.env.SEKAI_PREBUILT_URL !== undefined) {
-  //   console.log('system - no-cache')
-  //   console.log('system - download-prebuilt')
-  //   const prebuiltZip = await axios.get(process.env.SEKAI_PREBUILT_URL, {
-  //     responseType: 'arraybuffer'
-  //   })
-  //   if (!fs.existsSync(nextSekaiAssetsCachePath)) {
-  //     fs.mkdirSync(nextSekaiAssetsCachePath, { recursive: true })
-  //   }
-  //   fs.writeFileSync(path.join(nextSekaiAssetsCachePath, '../prebuilt.zip'), Buffer.from(prebuiltZip.data))
-  //   console.log('system - extract-prebuilt')
-  //   execSync(`unzip ${path.join(nextSekaiAssetsCachePath, '../prebuilt.zip')} -d ${nextSekaiAssetsCachePath}`)
-  //   fs.rmSync(path.join(nextSekaiAssetsCachePath, '../prebuilt.zip'))
-  // }
+  console.log('system - no-cache')
+  console.log('system - download-prebuilt')
+  const prebuiltZip = await axios.get(process.env.SEKAI_PREBUILT_URL, {
+    responseType: 'arraybuffer'
+  })
+  if (!fs.existsSync(nextSekaiAssetsCachePath)) {
+    fs.mkdirSync(nextSekaiAssetsCachePath, { recursive: true })
+  }
+  fs.writeFileSync(path.join(nextSekaiAssetsCachePath, '../prebuilt.zip'), Buffer.from(prebuiltZip.data))
+  console.log('system - extract-prebuilt')
+  execSync(`unzip ${path.join(nextSekaiAssetsCachePath, '../prebuilt.zip')} -d ${path.join(nextSekaiAssetsCachePath, '..')}`)
+  fs.rmSync(path.join(nextSekaiAssetsCachePath, '../prebuilt.zip'))
 
   const musics = await getMusics()
   const vocals = await getMusicVocals()

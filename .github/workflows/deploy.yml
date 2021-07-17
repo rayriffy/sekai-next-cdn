@@ -9,8 +9,7 @@ on:
 # on: push
 
 jobs:
-  cron:
-    name: Database Fetch
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -52,6 +51,8 @@ jobs:
             ${{ runner.OS }}-sekai-next-cdn-
 
       - name: "Execute: Build assets"
+        env:
+          SEKAI_PREBUILT_URL: ${{ secrets.SEKAI_PREBUILT_URL }}
         run: yarn build
 
       - name: "Deployment: Publish to Netlify"
