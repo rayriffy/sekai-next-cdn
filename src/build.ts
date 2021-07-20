@@ -5,7 +5,7 @@ import { flattenDeep } from 'lodash'
 import { execSync } from 'child_process'
 
 import { TaskQueue } from 'cwait'
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
+// import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
 
 import { getMusics } from './getMusics'
 import { getMusicVocals } from './getMusicVocals'
@@ -18,9 +18,9 @@ import { Music } from './@types/Music'
 import { getMetadata } from './getMetadata'
 
 const ffmpegQueue = new TaskQueue(Promise, 1)
-const ffmpeg = createFFmpeg({
-  log: false,
-})
+// const ffmpeg = createFFmpeg({
+//   log: false,
+// })
 
 const nextSekaiAssetsCachePath = path.join(__dirname, '../public')
 
@@ -172,31 +172,34 @@ const fetchCache = async (remoteUrl: string, localPath: string, unit: string) =>
         if (!(metadata?.data?.trimmed ?? false)) {
           console.log(`${item.unit} - ffmpeg`)
 
-          if (!ffmpeg.isLoaded()) {
-            await ffmpeg.load()
-          }
+          // if (!ffmpeg.isLoaded()) {
+          //   await ffmpeg.load()
+          // }
 
-          // load file
-          ffmpeg.FS(
-            'writeFile',
-            `input.${item.type}`,
-            await fetchFile(item.local)
-          )
-          await ffmpeg.run(
-            '-ss',
-            `${item.fillerSec}`,
-            '-i',
-            `input.${item.type}`,
-            // '-vcodec',
-            // 'libx264',
-            // '-crf',
-            // '24',
-            `output.${item.type}`
-          )
-          await fs.promises.writeFile(
-            item.local,
-            ffmpeg.FS('readFile', `output.${item.type}`)
-          )
+          // // load file
+          // ffmpeg.FS(
+          //   'writeFile',
+          //   `input.${item.type}`,
+          //   await fetchFile(item.local)
+          // )
+          // await ffmpeg.run(
+          //   '-ss',
+          //   `${item.fillerSec}`,
+          //   '-i',
+          //   `input.${item.type}`,
+          //   // '-vcodec',
+          //   // 'libx264',
+          //   // '-crf',
+          //   // '24',
+          //   `output.${item.type}`
+          // )
+          // await fs.promises.writeFile(
+          //   item.local,
+          //   ffmpeg.FS('readFile', `output.${item.type}`)
+          // )
+          fs.moveSync(item.local, path.join(path.dirname(item.local), `input.${item.type}`))
+          execSync(`ffmpeg -ss ${item.fillerSec} -i ${path.join(path.dirname(item.local), `input.${item.type}`)} ${item.local}`)
+          fs.rmSync(path.join(path.dirname(item.local), `input.${item.type}`))
 
           updateMetadata(item.remote, {
             trimmed: true,
