@@ -6,21 +6,18 @@
   "author": "Phumrapee Limpianchop <git@rayriffy.com>",
   "license": "MIT",
   "scripts": {
-    "build": "node --experimental-wasm-threads --experimental-wasm-bulk-memory --max_old_space_size=6144 ./node_modules/.bin/ts-node src/build.ts",
+    "build": "node --experimental-wasm-threads --experimental-wasm-bulk-memory --max_old_space_size=6144 ./node_modules/ts-node/dist/bin.js src/build.ts",
     "deploy": "netlify deploy --prod --dir public"
   },
   "devDependencies": {
-    "@types/axios": "^0.14.0",
     "@types/fs-extra": "^9.0.12",
     "@types/lodash": "^4.14.171",
     "@types/node": "^16.3.3",
     "netlify-cli": "^4.4.2",
-    "ts-node": "^10.1.0",
-    "typescript": "^4.3.5"
+    "typescript": "^4.3.5",
+    "ts-node": "^10.2.1"
   },
   "dependencies": {
-    "@ffmpeg/core": "^0.10.0",
-    "@ffmpeg/ffmpeg": "^0.10.1",
     "axios": "^0.21.1",
     "cwait": "^1.1.2",
     "fs-extra": "^10.0.0",
