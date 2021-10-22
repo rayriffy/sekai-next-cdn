@@ -5,26 +5,27 @@ import { flattenDeep } from 'lodash'
 import { execSync } from 'child_process'
 
 import { TaskQueue } from 'cwait'
-// import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
 
 import { getMusics } from './getMusics'
 import { getMusicVocals } from './getMusicVocals'
 import { updateMetadata } from './updateMetadata'
 
-import { getAudioFull, getAudioShort } from './getAudio'
+import { getAudioFull, getAudioShort, getAudioFullLostless, getAudioShortLostless } from './getAudio'
 import { getMusicVideo } from './getMusicVideo'
 
 import { Music } from './@types/Music'
 import { getMetadata } from './getMetadata'
 
 const ffmpegQueue = new TaskQueue(Promise, 1)
-// const ffmpeg = createFFmpeg({
-//   log: false,
-// })
 
 const nextSekaiAssetsCachePath = path.join(__dirname, '../public')
 
 const fetchCache = async (remoteUrl: string, localPath: string, unit: string) => {
+  // ignore list
+  if (['music:46:vocal:42:shortLostless'].includes(unit)) {
+    return
+  }
+
   try {
     if (!fs.existsSync(localPath)) {
       console.log(`${unit} - download`)
@@ -49,7 +50,7 @@ const fetchCache = async (remoteUrl: string, localPath: string, unit: string) =>
     }
   } catch (e) {
     console.error(e)
-    console.log(remoteUrl)
+    console.log(unit)
   }
 }
 
@@ -89,12 +90,28 @@ const fetchCache = async (remoteUrl: string, localPath: string, unit: string) =>
                 `music:${music.id}:vocal:${musicVocal.id}:full`,
               ),
               fetchCache(
+                getAudioFullLostless(musicVocal.assetbundleName),
+                path.join(
+                  nextSekaiAssetsCachePath,
+                  getAudioFullLostless(musicVocal.assetbundleName, true)
+                ),
+                `music:${music.id}:vocal:${musicVocal.id}:fullLostless`,
+              ),
+              fetchCache(
                 getAudioShort(musicVocal.assetbundleName),
                 path.join(
                   nextSekaiAssetsCachePath,
                   getAudioShort(musicVocal.assetbundleName, true)
                 ),
                 `music:${music.id}:vocal:${musicVocal.id}:short`,
+              ),
+              fetchCache(
+                getAudioShortLostless(musicVocal.assetbundleName),
+                path.join(
+                  nextSekaiAssetsCachePath,
+                  getAudioShortLostless(musicVocal.assetbundleName, true)
+                ),
+                `music:${music.id}:vocal:${musicVocal.id}:shortLostless`,
               ),
             ])
           })
@@ -134,16 +151,17 @@ const fetchCache = async (remoteUrl: string, localPath: string, unit: string) =>
   const musicUrls = flattenDeep<Item>(
     musics.map(music => {
       const targetVocals = vocals.filter(vocal => vocal.musicId === music.id)
-      return targetVocals.map(musicVocal => ({
-        remote: getAudioFull(musicVocal.assetbundleName),
+
+      return targetVocals.map(musicVocal => ['lostless', 'lossy'].map(o => ({
+        remote: o === 'lossy' ? getAudioFull(musicVocal.assetbundleName) : getAudioFullLostless(musicVocal.assetbundleName),
         local: path.join(
           nextSekaiAssetsCachePath,
-          getAudioFull(musicVocal.assetbundleName, true)
+          o === 'lossy' ? getAudioFull(musicVocal.assetbundleName, true) : getAudioFullLostless(musicVocal.assetbundleName, true)
         ),
         fillerSec: music.fillerSec,
-        type: 'mp3',
-        unit: `music:${music.id}:vocal:${musicVocal.id}`,
-      }))
+        type: o === 'lossy' ? 'mp3' : 'flac',
+        unit: `music:${music.id}:vocal:${musicVocal.id}:${o}`,
+      })).flat())
     })
   )
   const videoUrls = flattenDeep<Item>(
