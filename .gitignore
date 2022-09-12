@@ -149,3 +149,5 @@ prebuilt.zip
 
 # Local Netlify folder
 .netlify
+
+public_backup

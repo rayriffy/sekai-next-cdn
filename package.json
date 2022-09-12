@@ -6,7 +6,7 @@
   "author": "Phumrapee Limpianchop <git@rayriffy.com>",
   "license": "MIT",
   "scripts": {
-    "build": "node --experimental-wasm-threads --experimental-wasm-bulk-memory --max_old_space_size=6144 ./node_modules/ts-node/dist/bin.js src/build.ts",
+    "build": "node --max_old_space_size=6144 ./node_modules/ts-node/dist/bin.js src/build.ts",
     "deploy": "netlify deploy --prod --dir public"
   },
   "devDependencies": {
